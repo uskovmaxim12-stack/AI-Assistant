@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Мой ИИ-ассистент</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .app {
+            width: 100%;
+            max-width: 1200px;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 32px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .header {
+            padding: 20px 24px;
+            background: rgba(15,23,42,0.8);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .logo {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+        .header h1 {
+            color: white;
+            font-weight: 600;
+            font-size: 24px;
+            flex: 1;
+        }
+        .status {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 40px;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4caf50;
+            box-shadow: 0 0 10px #4caf50;
+        }
+        .main {
+            display: flex;
+            flex-direction: row;
+            min-height: 600px;
+        }
+        .chat-section {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid rgba(255,255,255,0.1);
+        }
+        .reminder-section {
+            flex: 1;
+            background: rgba(0,0,0,0.2);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .reminder-section h2 {
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        #chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .message-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            max-width: 80%;
+        }
+        .message-row.user {
+            margin-left: auto;
+            flex-direction: row-reverse;
+        }
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #334155, #475569);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+        }
+        .avatar.user {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        }
+        .bubble {
+            padding: 12px 16px;
+            border-radius: 22px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #f1f5f9;
+            font-size: 15px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+        .user .bubble {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            border: none;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        .bot .bubble {
+            border-bottom-left-radius: 4px;
+        }
+        .typing {
+            display: flex;
+            gap: 4px;
+            padding: 8px 12px;
+        }
+        .typing span {
+            width: 8px;
+            height: 8px;
+            background: #94a3b8;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+        .typing span:nth-child(2) { animation-delay: 0.2s; }
+        .typing span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing {
+            0%,60%,100% { transform: translateY(0); opacity: 0.6; }
+            30% { transform: translateY(-6px); opacity: 1; }
+        }
+        .input-area {
+            padding: 20px;
+            background: rgba(15,23,42,0.8);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            gap: 12px;
+        }
+        #message-input {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 40px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            font-size: 16px;
+            outline: none;
+        }
+        #message-input:focus {
+            border-color: #6366f1;
+        }
+        #send-button {
+            width: 54px;
+            height: 54px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 6px 15px rgba(99,102,241,0.4);
+        }
+        #send-button:disabled {
+            opacity: 0.5;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        /* Напоминания */
+        .reminder-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .reminder-form input, .reminder-form button {
+            padding: 12px;
+            border-radius: 20px;
+            border: none;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            font-size: 14px;
+        }
+        .reminder-form button {
+            background: #6366f1;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .reminder-form button:hover {
+            background: #4f46e5;
+        }
+        .reminder-list {
+            list-style: none;
+            margin-top: 10px;
+        }
+        .reminder-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .reminder-text {
+            color: white;
+            font-size: 14px;
+        }
+        .reminder-time {
+            color: #94a3b8;
+            font-size: 12px;
+        }
+        .delete-reminder {
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <div class="header">
+            <div class="logo"><i class="fas fa-robot"></i></div>
+            <h1>Универсальный ИИ-ассистент</h1>
+            <div class="status"><span class="dot"></span> Сервер: {{server_status}}</div>
+        </div>
+        <div class="main">
+            <div class="chat-section">
+                <div id="chat-container">
+                    <div class="message-row bot">
+                        <div class="avatar"><i class="fas fa-robot"></i></div>
+                        <div class="bubble">Здравствуйте! Я ваш персональный ИИ. Спрашивайте что угодно, а также могу создавать напоминания.</div>
+                    </div>
+                </div>
+                <div class="input-area">
+                    <input type="text" id="message-input" placeholder="Введите сообщение...">
+                    <button id="send-button" disabled><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+            <div class="reminder-section">
+                <h2><i class="fas fa-bell"></i> Напоминания</h2>
+                <div class="reminder-form">
+                    <input type="text" id="reminder-text" placeholder="Что напомнить?">
+                    <input type="datetime-local" id="reminder-time">
+                    <button id="add-reminder">Добавить</button>
+                </div>
+                <ul class="reminder-list" id="reminder-list"></ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        // Конфигурация (замените на URL вашего сервера)
+        const API_URL = 'http://localhost:8000/chat';  // или ваш сервер
+
+        const chatContainer = document.getElementById('chat-container');
+        const inputField = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        let isGenerating = false;
+        let history = [];  // история сообщений для контекста
+
+        // Проверка соединения с сервером
+        async function checkServer() {
+            try {
+                const res = await fetch(API_URL.replace('/chat', '/health'));
+                if (res.ok) {
+                    document.querySelector('.status').innerHTML = '<span class="dot"></span> Сервер: онлайн';
+                    sendButton.disabled = false;
+                    inputField.disabled = false;
+                    inputField.focus();
+                } else {
+                    document.querySelector('.status').innerHTML = '<span class="dot" style="background:#ef4444;"></span> Сервер: офлайн';
+                }
+            } catch {
+                document.querySelector('.status').innerHTML = '<span class="dot" style="background:#ef4444;"></span> Сервер: недоступен';
+            }
+        }
+        checkServer();
+
+        function addMessage(text, sender) {
+            const row = document.createElement('div');
+            row.className = `message-row ${sender}`;
+            row.innerHTML = `
+                <div class="avatar ${sender}"><i class="fas fa-${sender === 'user' ? 'user' : 'robot'}"></i></div>
+                <div class="bubble">${text}</div>
+            `;
+            chatContainer.appendChild(row);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function showTyping() {
+            const row = document.createElement('div');
+            row.className = 'message-row bot';
+            row.id = 'typing';
+            row.innerHTML = `
+                <div class="avatar bot"><i class="fas fa-robot"></i></div>
+                <div class="bubble typing"><span></span><span></span><span></span></div>
+            `;
+            chatContainer.appendChild(row);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function removeTyping() {
+            const typing = document.getElementById('typing');
+            if (typing) typing.remove();
+        }
+
+        async function sendMessage() {
+            const msg = inputField.value.trim();
+            if (!msg || isGenerating) return;
+
+            inputField.value = '';
+            addMessage(msg, 'user');
+            history.push(msg);
+            showTyping();
+            isGenerating = true;
+            sendButton.disabled = true;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: msg, history: history.slice(-10) }) // последние 10
+                });
+                const data = await response.json();
+                removeTyping();
+                addMessage(data.reply, 'bot');
+                history.push(data.reply);
+            } catch (error) {
+                removeTyping();
+                addMessage('Ошибка соединения с сервером.', 'bot');
+            } finally {
+                isGenerating = false;
+                sendButton.disabled = false;
+                inputField.focus();
+            }
+        }
+
+        sendButton.addEventListener('click', sendMessage);
+        inputField.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Напоминания
+        let reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+
+        function saveReminders() {
+            localStorage.setItem('reminders', JSON.stringify(reminders));
+            renderReminders();
+        }
+
+        function renderReminders() {
+            const list = document.getElementById('reminder-list');
+            list.innerHTML = '';
+            reminders.forEach((rem, index) => {
+                const li = document.createElement('li');
+                li.className = 'reminder-item';
+                li.innerHTML = `
+                    <div>
+                        <div class="reminder-text">${rem.text}</div>
+                        <div class="reminder-time">${new Date(rem.time).toLocaleString()}</div>
+                    </div>
+                    <div class="delete-reminder" onclick="deleteReminder(${index})"><i class="fas fa-times"></i></div>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        window.deleteReminder = function(index) {
+            reminders.splice(index, 1);
+            saveReminders();
+        };
+
+        document.getElementById('add-reminder').addEventListener('click', () => {
+            const text = document.getElementById('reminder-text').value.trim();
+            const time = document.getElementById('reminder-time').value;
+            if (!text || !time) return;
+            reminders.push({ text, time: new Date(time).toISOString() });
+            saveReminders();
+            document.getElementById('reminder-text').value = '';
+            document.getElementById('reminder-time').value = '';
+
+            // Запрашиваем разрешение на уведомления, если ещё нет
+            if (Notification.permission !== 'granted') {
+                Notification.requestPermission();
+            }
+
+            // Устанавливаем таймер
+            const reminderTime = new Date(time).getTime();
+            const now = Date.now();
+            if (reminderTime > now) {
+                setTimeout(() => {
+                    if (Notification.permission === 'granted') {
+                        new Notification('Напоминание', { body: text });
+                    } else {
+                        alert(`Напоминание: ${text}`);
+                    }
+                }, reminderTime - now);
+            }
+        });
+
+        renderReminders();
+
+        // Проверка уведомлений при загрузке страницы
+        if (Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+    </script>
+</body>
+</html>
